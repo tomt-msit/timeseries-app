@@ -1,6 +1,6 @@
-# ===============================================
-# Generic Time Series Forecasting — Streamlit App
-# ===============================================
+# ========================================#
+# Time Series Forecasting — Streamlit App #
+# ========================================#
 
 import streamlit as st
 import numpy as np
@@ -10,9 +10,7 @@ import xgboost as xgb
 from xgboost import plot_importance
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-# ─────────────────────────────────────────────
-# Page Config
-# ─────────────────────────────────────────────
+### Page Config ###
 st.set_page_config(
     page_title="Time Series Forecaster",
     page_icon="📈",
@@ -26,10 +24,10 @@ st.markdown(
     "The app will explore your data, train an XGBoost model, and analyse forecast accuracy."
 )
 
-# ─────────────────────────────────────────────
+# ─────────────────────
 # Sidebar — File Upload
-# ─────────────────────────────────────────────
-st.sidebar.header("📂 Data Upload")
+# ─────────────────────
+st.sidebar.header("Data Upload")
 
 uploaded_file = st.sidebar.file_uploader(
     "Upload a CSV file",
@@ -38,22 +36,22 @@ uploaded_file = st.sidebar.file_uploader(
 )
 
 if uploaded_file is None:
-    st.info("👈  Upload a CSV file in the sidebar to get started.")
+    st.info("Upload a CSV file in the sidebar to get started.")
     st.stop()
 
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────
 # Load raw CSV (columns unknown until file arrives)
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────
 @st.cache_data
 def read_raw(file) -> pd.DataFrame:
     return pd.read_csv(file)
 
 raw_df = read_raw(uploaded_file)
 
-# ─────────────────────────────────────────────
+# ──────────────────────────
 # Sidebar — Column Selection
-# ─────────────────────────────────────────────
-st.sidebar.header("🗂️ Column Mapping")
+# ──────────────────────────
+st.sidebar.header("Column Mapping")
 
 all_cols = raw_df.columns.tolist()
 
@@ -81,9 +79,9 @@ target_col = st.sidebar.selectbox(
     help="The numeric column you want the model to predict.",
 )
 
-# ─────────────────────────────────────────────
+# ─────────────────────────
 # Parse & index by datetime
-# ─────────────────────────────────────────────
+# ─────────────────────────
 @st.cache_data
 def load_data(file, dt_col: str) -> pd.DataFrame:
     df = pd.read_csv(file)
@@ -103,9 +101,9 @@ st.success(
     f"Target: **{target_col}**"
 )
 
-# ─────────────────────────────────────────────
+# ────────────────────────────────
 # Sidebar — Split & Model Settings
-# ─────────────────────────────────────────────
+# ────────────────────────────────
 st.sidebar.header("⚙️ Model Settings")
 
 # Default split at 80% of the timeline
@@ -125,11 +123,11 @@ early_stopping = st.sidebar.slider(
     "XGBoost — early_stopping_rounds", 10, 200, 50, step=10
 )
 
-run_model = st.sidebar.button("🚀 Train Model", use_container_width=True)
+run_model = st.sidebar.button("Train Model", use_container_width=True)
 
-# ─────────────────────────────────────────────
+# ────────────────
 # Helper functions
-# ─────────────────────────────────────────────
+# ────────────────
 
 def create_features(df: pd.DataFrame, label: str = None):
     """Calendar-based time features — works for any datetime-indexed DataFrame."""
@@ -157,16 +155,16 @@ def show_fig(fig):
     plt.close(fig)
 
 
-# ─────────────────────────────────────────────
+# ──────────
 # Tab Layout
-# ─────────────────────────────────────────────
+# ──────────
 tab1, tab2, tab3, tab4 = st.tabs(
-    ["📊 Data Explorer", "🔀 Train / Test Split", "🤖 Model & Predictions", "📐 Error Analysis"]
+    ["Data Explorer", "Train / Test Split", "Model & Predictions", "Error Analysis"]
 )
 
-# ══════════════════════════════════════════════
+# ═════════════════════
 # TAB 1 — Data Explorer
-# ══════════════════════════════════════════════
+# ═════════════════════
 with tab1:
     st.subheader("Raw Data Preview")
     st.dataframe(df.head(50), use_container_width=True)
@@ -192,9 +190,9 @@ with tab1:
     plt.tight_layout()
     show_fig(fig)
 
-# ══════════════════════════════════════════════
+# ══════════════════════════
 # TAB 2 — Train / Test Split
-# ══════════════════════════════════════════════
+# ══════════════════════════
 with tab2:
     split_ts = pd.Timestamp(split_date)
     df_train = df.loc[df.index <= split_ts].copy()
@@ -222,9 +220,9 @@ with tab2:
         plt.tight_layout()
         show_fig(fig)
 
-# ══════════════════════════════════════════════
+# ═══════════════════════════
 # TAB 3 — Model & Predictions
-# ══════════════════════════════════════════════
+# ═══════════════════════════
 with tab3:
     if not run_model:
         st.info("Configure settings in the sidebar, then click **🚀 Train Model**.")
@@ -254,7 +252,7 @@ with tab3:
             )
         st.success(f"✅ Model trained using **{target_col}** as the target!")
 
-        # ── Metrics ──────────────────────────────
+        # ── Metrics ──
         preds = reg.predict(X_test)
         rmse  = np.sqrt(mean_squared_error(y_test, preds))
         mae   = mean_absolute_error(y_test, preds)
@@ -266,7 +264,7 @@ with tab3:
         c2.metric("MAE",  f"{mae:,.2f}")
         c3.metric("MAPE", f"{mape:.2f} %")
 
-        # ── Feature Importance ───────────────────
+        # ── Feature Importance ──
         st.subheader("Feature Importance")
         fig, ax = plt.subplots(figsize=(8, 4))
         plot_importance(reg, ax=ax, height=0.7, importance_type="gain")
@@ -274,7 +272,7 @@ with tab3:
         plt.tight_layout()
         show_fig(fig)
 
-        # ── Full Actual vs Predicted ─────────────
+        # ── Full Actual vs Predicted ──
         df_test = df_test.copy()
         df_test["Prediction"] = preds
         df_all = pd.concat([df_test, df_train]).sort_index()
@@ -290,8 +288,8 @@ with tab3:
         plt.tight_layout()
         show_fig(fig)
 
-        # ── Zoom Window ──────────────────────────
-        st.subheader("🔍 Zoom into a Specific Period")
+        # ── Zoom Window ──
+        st.subheader("Zoom into a Specific Period")
         z_col1, z_col2 = st.columns(2)
         zoom_start = z_col1.date_input(
             "From",
@@ -321,9 +319,9 @@ with tab3:
         st.session_state["test_results"] = df_test
         st.session_state["target_col"]   = target_col
 
-# ══════════════════════════════════════════════
+# ══════════════════════
 # TAB 4 — Error Analysis
-# ══════════════════════════════════════════════
+# ══════════════════════
 with tab4:
     if "test_results" not in st.session_state:
         st.info("Train the model first (Tab 3) to see error analysis.")
@@ -357,14 +355,14 @@ with tab4:
         # ── Worst / Best Days ────────────────────
         col_a, col_b = st.columns(2)
         with col_a:
-            st.subheader("⬆️ Top 10 Overestimated Days")
+            st.subheader("Top 10 Overestimated Days")
             st.caption("Days where the model predicted too HIGH (most negative error)")
             st.dataframe(
                 error_by_day.sort_values("error", ascending=True).head(10).style.format("{:.2f}"),
                 use_container_width=True,
             )
         with col_b:
-            st.subheader("🎯 Top 10 Most Accurate Days")
+            st.subheader("Top 10 Most Accurate Days")
             st.caption("Days with the lowest absolute error")
             st.dataframe(
                 error_by_day.sort_values("abs_error", ascending=True).head(10).style.format("{:.2f}"),
