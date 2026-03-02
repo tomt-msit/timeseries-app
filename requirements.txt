@@ -1,1 +1,6 @@
 streamlit>=1.32.0
+numpy
+pandas
+matplotlib
+xgboost
+scikit-learn
